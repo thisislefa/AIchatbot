@@ -1,0 +1,622 @@
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+  :root {
+    --primary-blue: #0091ff;
+    --dark-blue: #005fa3;
+    --white: #fff;
+    --light-gray: #f2f4f8;
+    --transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
+  }
+
+  /* Communication Panel Styles */
+  .communication-panel {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    z-index: 99;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 15px;
+  }
+
+  .main-comm-button {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: var(--primary-blue);
+    color: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    box-shadow: 0 5px 20px rgba(0, 145, 255, 0.3);
+    transition: var(--transition);
+    position: relative;
+    border: none;
+  }
+
+  .main-comm-button:hover {
+    transform: scale(1.1) rotate(30deg);
+    background: var(--dark-blue);
+  }
+
+  .main-comm-button i {
+    font-size: 1.5rem;
+  }
+
+  .comm-tooltip {
+    position: absolute;
+    right: 70px;
+    background: var(--dark-blue);
+    color: white;
+    padding: 8px 15px;
+    border-radius: 5px;
+    font-size: 0.9rem;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: var(--transition);
+  }
+
+  .main-comm-button:hover .comm-tooltip {
+    opacity: 1;
+    right: 80px;
+  }
+
+  .secondary-comm-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    align-items: flex-end;
+    transform: translateY(20px);
+    opacity: 0;
+    height: 0;
+    overflow: visible;
+    padding-bottom: 10px;
+    transition: var(--transition);
+  }
+
+  .secondary-comm-buttons.active {
+    transform: translateY(0);
+    opacity: 1;
+    height: auto;
+  }
+
+  .secondary-button {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: var(--white);
+    color: var(--dark-blue);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    box-shadow: 0 3px 15px rgba(0, 0, 0, 0.1);
+    transition: var(--transition);
+    border: 1px solid var(--light-gray);
+    position: relative;
+  }
+
+  .secondary-button:hover {
+    transform: scale(1.1);
+    color: var(--primary-blue);
+  }
+
+  .secondary-button.whatsapp:hover {
+    background: #25D366;
+    color: white;
+    border: none;
+  }
+
+  .secondary-button.chat:hover {
+    background: var(--primary-blue);
+    color: white;
+    border: none;
+  }
+
+  .secondary-button.ai:hover {
+    background: var(--dark-blue);
+    color: white;
+    border: none;
+  }
+
+  /* Button Tooltips */
+  .button-tooltip {
+    position: absolute;
+    right: 60px;
+    background: var(--dark-blue);
+    color: white;
+    padding: 6px 12px;
+    border-radius: 5px;
+    font-size: 0.85rem;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: var(--transition);
+  }
+
+  .secondary-button:hover .button-tooltip {
+    opacity: 1;
+    right: 65px;
+  }
+
+  .whatsapp .button-tooltip { background: #25D366; }
+  .chat .button-tooltip { background: var(--primary-blue); }
+  .ai .button-tooltip { background: var(--dark-blue); }
+
+  /* Chatbot Modal */
+  .chatbot-modal {
+    position: fixed;
+    bottom: 120px;
+    right: 30px;
+    width: 350px;
+    background: var(--white);
+    border-radius: 6px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+    z-index: 1000;
+    transform: translateY(20px) scale(0.9);
+    opacity: 0;
+    visibility: hidden;
+    transition: var(--transition);
+    
+    overflow: hidden;
+  }
+
+  .chatbot-modal.active {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+    visibility: visible;
+  }
+
+  .chatbot-header {
+    background: var(--primary-blue);
+    color: white;
+    padding: 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .chatbot-header-content {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .chatbot-header h3 {
+    margin: 0;
+    font-size: 1.1rem;
+  }
+
+  .chatbot-subtitle {
+    font-size: 0.7rem;
+    opacity: 0.8;
+    margin-top: 2px;
+  }
+
+  .chatbot-close {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 1.2rem;
+    cursor: pointer;
+    position: relative;
+  }
+
+  .chatbot-close .button-tooltip {
+    top: -35px;
+    right: auto;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+
+  .chatbot-close:hover .button-tooltip {
+    opacity: 1;
+    top: -40px;
+  }
+
+  .chatbot-messages {
+    height: 300px;
+    overflow-y: auto;
+    padding: 15px;
+    background: var(--white);
+    text-align: left;
+  }
+
+  .message {
+    margin-bottom: 15px;
+    max-width: 80%;
+    padding: 10px 15px;
+    border-radius: 10px;
+    font-size: 0.95rem;
+    line-height: 1.4;
+    text-align: left;
+  }
+
+  .bot-message {
+    background: var(--light-gray);
+    color: var(--dark-blue);
+    border-bottom-left-radius: 5px;
+    margin-right: auto;
+  }
+
+  .user-message {
+    background: var(--primary-blue);
+    color: white;
+    border-bottom-right-radius: 5px;
+    margin-left: auto;
+  }
+
+  .chatbot-input-container {
+    padding: 10px;
+    border-top: 1px solid var(--light-gray);
+    background: var(--white);
+  }
+
+  .chatbot-input {
+    display: flex;
+   
+  }
+
+  .chatbot-input input {
+    flex: 1;
+    padding: 10px 15px;
+    border: 1px solid #cfcfcf;
+    border-radius: 30px;
+    outline: none;
+    font-size: 0.95rem;
+  }
+
+  .chatbot-input button {
+    background: var(--primary-blue);
+    color: white;
+    border: none;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    margin-left: 10px;
+    cursor: pointer;
+    transition: var(--transition);
+    position: relative;
+  }
+
+  .chatbot-input button:hover {
+    background: var(--dark-blue);
+  }
+
+  .chatbot-input button .button-tooltip {
+    top: -35px;
+    right: auto;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+
+  .chatbot-input button:hover .button-tooltip {
+    opacity: 1;
+    top: -40px;
+  }
+
+  .chatbot-disclaimer {
+    font-size: 0.7rem;
+    color: #888;
+    text-align: center;
+    padding: 5px 15px 0;
+    line-height: 1.3;
+  }
+
+  /* WhatsApp Modal */
+  .whatsapp-modal {
+    position: fixed;
+    bottom: 120px;
+    right: 30px;
+    width: 300px;
+    background: var(--white);
+    border-radius: 6px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+    z-index: 1000;
+    transform: translateY(20px) scale(0.9);
+    opacity: 0;
+    visibility: hidden;
+    transition: var(--transition);
+    border: 1px solid var(--light-gray);
+    overflow: hidden;
+  }
+
+  .whatsapp-modal.active {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+    visibility: visible;
+  }
+
+  .whatsapp-header {
+    background: #25D366;
+    color: white;
+    padding: 15px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .whatsapp-header h3 {
+    margin: 0;
+    font-size: 1.1rem;
+  }
+
+  .whatsapp-close {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 1.2rem;
+    cursor: pointer;
+    margin-left: auto;
+    position: relative;
+  }
+
+  .whatsapp-close .button-tooltip {
+    top: -35px;
+    right: auto;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+
+  .whatsapp-close:hover .button-tooltip {
+    opacity: 1;
+    top: -40px;
+  }
+
+  .whatsapp-body {
+    padding: 20px;
+    text-align: center;
+  }
+
+  .whatsapp-body p {
+    margin-bottom: 20px;
+    color: var(--dark-blue);
+  }
+  .whatsapp-button {
+    background: #25D366;
+    color: white;
+    border: none;
+    padding: 12px 25px;
+    border-radius: 30px;
+    font-size: 1rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 0 auto;
+    transition: var(--transition);
+    text-decoration: none;
+    position: relative;
+  }
+  
+  .whatsapp-button:hover {
+    background: #128C7E;
+    transform: translateY(-2px);
+  }
+
+  .whatsapp-button .button-tooltip {
+    top: -35px;
+    right: auto;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #128C7E;
+  }
+
+  .whatsapp-button:hover .button-tooltip {
+    opacity: 1;
+    top: -40px;
+  }
+
+  /* Responsive Adjustments */
+  @media (max-width: 768px) {
+    .communication-panel {
+      bottom: 20px;
+      right: 20px;
+    }
+    
+    .chatbot-modal, .whatsapp-modal {
+      width: calc(100% - 40px);
+      right: 20px;
+    }
+  }
+</style>
+
+<!-- Communication Panel -->
+<div class="communication-panel">
+  <div class="secondary-comm-buttons" id="secondaryButtons">
+    <button class="secondary-button whatsapp" onclick="openWhatsAppModal()">
+      <i class="fab fa-whatsapp"></i>
+      <span class="button-tooltip">WhatsApp Support</span>
+    </button>
+    <button class="secondary-button chat" onclick="openChatbotModal()">
+      <i class="fas fa-comment-dots"></i>
+      <span class="button-tooltip">Live Chat</span>
+    </button>
+    <button class="secondary-button ai" onclick="openChatbotModal()">
+      <i class="fas fa-robot"></i>
+      <span class="button-tooltip">AI Assistant</span>
+    </button>
+  </div>
+  
+  <button class="main-comm-button" id="mainCommButton" onclick="toggleSecondaryButtons()">
+    <i class="fas fa-headset"></i>
+    <span class="comm-tooltip">Contact Options</span>
+  </button>
+</div>
+
+<!-- Chatbot Modal -->
+<div class="chatbot-modal" id="chatbotModal">
+  <div class="chatbot-header">
+    <div class="chatbot-header-content">
+      <h3>Defcon AI Assistant</h3>
+      <div class="chatbot-subtitle">Powered by Advanced AI Technology</div>
+    </div>
+    <button class="chatbot-close" onclick="closeChatbotModal()">
+      <i class="fas fa-times"></i>
+      
+    </button>
+  </div>
+  <div class="chatbot-messages" id="chatbotMessages">
+    <div class="message bot-message">
+      Hello! I'm Defcon's AI assistant. How can I help you today?
+    </div>
+  </div>
+  <div class="chatbot-input-container">
+    <div class="chatbot-input">
+      <input type="text" id="chatbotInput" placeholder="Type your message...">
+      <button onclick="sendChatbotMessage()">
+        <i class="fas fa-paper-plane"></i>
+       
+      </button>
+    </div>
+    <div class="chatbot-disclaimer">
+      Note: This AI assistant may occasionally provide inaccurate information. Please verify critical details with our support team.
+    </div>
+  </div>
+</div>
+
+<!-- WhatsApp Modal -->
+<div class="whatsapp-modal" id="whatsappModal">
+  <div class="whatsapp-header">
+    <i class="fab fa-whatsapp"></i>
+    <h3>Chat on WhatsApp</h3>
+    <button class="whatsapp-close" onclick="closeWhatsAppModal()">
+      <i class="fas fa-times"></i>
+      
+    </button>
+  </div>
+  <div class="whatsapp-body">
+    <p>Start a conversation with our support team directly on WhatsApp for quick assistance.</p>
+    <a href="https://wa.me/1234567890?text=Hello%20Defcon%20IT%20team" class="whatsapp-button" target="_blank">
+      <i class="fab fa-whatsapp"></i>
+      Open WhatsApp
+      <span class="button-tooltip">Start WhatsApp Chat</span>
+    </a>
+  </div>
+</div>
+
+<script>
+  // Communication Panel Functionality
+  function toggleSecondaryButtons() {
+    const secondaryButtons = document.getElementById('secondaryButtons');
+    secondaryButtons.classList.toggle('active');
+  }
+
+  function openChatbotModal() {
+    closeAllModals();
+    document.getElementById('chatbotModal').classList.add('active');
+    toggleSecondaryButtons();
+  }
+
+  function closeChatbotModal() {
+    document.getElementById('chatbotModal').classList.remove('active');
+  }
+
+  function openWhatsAppModal() {
+    closeAllModals();
+    document.getElementById('whatsappModal').classList.add('active');
+    toggleSecondaryButtons();
+  }
+
+  function closeWhatsAppModal() {
+    document.getElementById('whatsappModal').classList.remove('active');
+  }
+
+  function closeAllModals() {
+    closeChatbotModal();
+    closeWhatsAppModal();
+  }
+
+  // Chatbot functionality
+  function sendChatbotMessage() {
+    const input = document.getElementById('chatbotInput');
+    const messagesContainer = document.getElementById('chatbotMessages');
+    
+    if (input.value.trim() === '') return;
+    
+    // Add user message
+    const userMessage = document.createElement('div');
+    userMessage.className = 'message user-message';
+    userMessage.textContent = input.value;
+    messagesContainer.appendChild(userMessage);
+    
+    // Prepare bot response
+    const userText = userMessage.textContent.toLowerCase();
+    let botReply = '';
+
+    // Service keywords
+    const serviceKeywords = [
+      'what services', 'services do you offer', 'your services', 'what do you provide', 'what does defcon do', 'service list', 'offerings', 'solutions', 'what can you do', 'what can i get', 'what can you help with'
+    ];
+
+    // IT Consulting keywords
+    const itConsultingKeywords = [
+      'it consulting', 'consulting', 'technology consulting', 'tech consulting', 'consultant', 'advice on it', 'technology advice', 'digital transformation', 'infrastructure analysis', 'it strategy'
+    ];
+
+    // Check for service-related questions
+    if (serviceKeywords.some(kw => userText.includes(kw))) {
+      botReply = "Defcon offers the following services: Web Design & Development, Technical Support (24/7), IT Consulting, Digital Marketing, Graphic Design, Photography & Videography. Let me know if you'd like details about any specific service!";
+    } else 
+    
+    if (itConsultingKeywords.some(kw => userText.includes(kw))) {
+      botReply = "Our IT Consulting service provides expert guidance to help your business leverage technology for growth. We analyze your current infrastructure, recommend improvements, and create a roadmap for digital transformation. Would you like to know more about our consulting process or schedule a session?";
+    } else 
+    
+    {
+      // Default random response
+      botReply = getBotResponse();
+    }
+
+    // Clear input
+    input.value = '';
+    
+    // Scroll to bottom
+    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    
+    // Simulate bot response after a delay
+    setTimeout(() => {
+      const botMessage = document.createElement('div');
+      botMessage.className = 'message bot-message';
+      botMessage.textContent = botReply;
+      messagesContainer.appendChild(botMessage);
+      messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    }, 1000);
+  }
+
+  function getBotResponse() {
+    const responses = [
+      "I'd be happy to help with that. Could you provide more details?",
+      "Our support team can assist with that. Would you like me to connect you?",
+      "That's a great question. For security matters, we recommend contacting our team directly.",
+      "I've noted your inquiry. Our typical response time is under 2 hours during business days.",
+      "For detailed technical questions, our documentation might help. Shall I guide you there?"
+    ];
+    return responses[Math.floor(Math.random() * responses.length)];
+  }
+
+  // Allow pressing Enter to send message
+  document.addEventListener('DOMContentLoaded', function() {
+    const chatbotInput = document.getElementById('chatbotInput');
+    if (chatbotInput) {
+      chatbotInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+          sendChatbotMessage();
+        }
+      });
+    }
+  });
+
+  // Close modals when clicking outside
+  window.addEventListener('click', (e) => {
+    if (!e.target.closest('.chatbot-modal') && !e.target.closest('.secondary-button.chat') && !e.target.closest('.secondary-button.ai')) {
+      closeChatbotModal();
+    }
+    
+    if (!e.target.closest('.whatsapp-modal') && !e.target.closest('.secondary-button.whatsapp')) {
+      closeWhatsAppModal();
+    }
+  });
+</script>
